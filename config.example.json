@@ -1,0 +1,41 @@
+{
+  "_comment": "github-backup configuration file. Copy to ~/.config/github-backup/config.json and edit.",
+  "_security": "Protect this file: chmod 600 ~/.config/github-backup/config.json",
+  "output_path": "/path/to/your/backup/directory",
+  "proxy": {
+    "_comment": "Remove the proxy section entirely if you don't use a proxy",
+    "http": "http://proxy.example.com:8080",
+    "https": "http://proxy.example.com:8080",
+    "no_proxy": "localhost,127.0.0.1"
+  },
+  "retry": {
+    "max_attempts": 3,
+    "backoff_seconds": 5
+  },
+  "archive": {
+    "_comment": "Archive creates a dated tarball snapshot. Disabled by default.",
+    "enabled": false,
+    "keep_last": null,
+    "keep_days": null
+  },
+  "accounts": [
+    {
+      "_comment": "Personal account example",
+      "name": "my-personal-account",
+      "token": "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "include_orgs": ["all"],
+      "exclude_orgs": [],
+      "include_repos": ["all"],
+      "exclude_repos": []
+    },
+    {
+      "_comment": "Work account example - limit to specific org",
+      "name": "work-account",
+      "token": "ghp_yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+      "include_orgs": ["my-company"],
+      "exclude_orgs": [],
+      "include_repos": ["all"],
+      "exclude_repos": []
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+pip-wheel-metadata/
+.installed.cfg
+lib/
+lib64/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.env
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+*.coveragerc
+
+# IDE / editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# CLIO agent workspace
+scratch/
+reference/
+ai-assisted/
+*.txt
+!llms.txt
+.clio/*.json
+.clio/sessions/
+.clio/memory/
+.clio/snapshots/
+.clio/logs/
+
+# Project-specific: never commit config with real tokens
+github-backup.json
+!config.example.json
+
+# Backup output directories (don't accidentally commit backup data)
+accounts/
+metadata/
+archives/
+logs/
+.run-state.json

@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+"""github-backup: Comprehensive GitHub backup tool."""
+
+import sys
+import os
+
+# Allow running directly from the project root without installing
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from github_backup.cli import main
+
+if __name__ == "__main__":
+    main()
