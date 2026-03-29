@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: write
-  id-token: write
 
 jobs:
   release:
@@ -17,34 +16,85 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Extract tag
-        id: tag
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
 
       - name: Build sdist
         run: |
           python -m pip install --upgrade pip build twine
           python -m build --sdist --outdir dist .
 
-      - name: Calculate SHA256
-        id: sha
+      - name: Verify sdist
         run: |
-          SHA=$(shasum -a 256 dist/*.tar.gz | awk '{print $1}')
-          echo "sha256=$SHA" >> $GITHUB_ENV
+          ls -lh dist/
+          tar -tzf dist/*.tar.gz | head -10
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.tar.gz
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: github-backup ${{ steps.version.outputs.version }}
           generate_release_notes: true
+          body: |
+            ## github-backup ${{ steps.version.outputs.version }}
 
-      - name: Update Homebrew Tap
-        uses: mislav/update-homebrew-formula-action@v2
-        with:
-          formula-name: github_backup
-          formula-path: homebrew/Formula/github_backup.rb
-          homebrew-tap: fewtarius/homebrew-tap
-          version: ${{ env.VERSION }}
-          sha256: ${{ env.sha256 }}
+            Comprehensive GitHub backup tool for repos, gists, orgs, and metadata.
+
+            ### Install via Homebrew
+            ```sh
+            brew tap fewtarius/tap
+            brew install github-backup
+            ```
+
+            ### Build from source
+            ```sh
+            pip install -r requirements.txt
+            ./github-backup --help
+            ```
+
+            ### Download
+            Source tarball attached below.
+          files: dist/*.tar.gz
+
+      - name: Compute source tarball SHA256
+        id: sha256
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          SHA=$(shasum -a 256 "dist/github-backup-${{ steps.version.outputs.version }}.tar.gz" | awk '{print $1}')
+          echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
+          echo "Source tarball SHA256: $SHA"
+
+      - name: Update Homebrew tap
         env:
-          COMMITTER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_PAT: ${{ secrets.HOMEBREW_PAT }}
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          VER="${{ steps.version.outputs.version }}"
+          SHA="${{ steps.sha256.outputs.sha256 }}"
+
+          git clone "https://x-access-token:${HOMEBREW_PAT}@github.com/fewtarius/homebrew-tap.git" tap-repo
+          cd tap-repo
+
+          # Update the formula
+          sed -i "s|url \"[^\"]*\"|url \"https://github.com/fewtarius/github-backup/archive/refs/tags/${TAG}.tar.gz\"|" Formula/github-backup.rb
+          sed -i "s|sha256 \"[^\"]*\"|sha256 \"${SHA}\"|" Formula/github-backup.rb
+          sed -i "s|# version:.*|# version: ${VER}|" Formula/github-backup.rb
+
+          echo "--- Updated formula ---"
+          head -15 Formula/github-backup.rb
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/github-backup.rb
+
+          if git diff --cached --quiet; then
+            echo "No changes needed - formula already up to date"
+          else
+            git commit -m "github-backup: update to ${TAG}"
+            git push
+            echo "Pushed formula update for ${TAG}"
+          fi
