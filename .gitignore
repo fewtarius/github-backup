@@ -44,12 +44,6 @@ reference/
 ai-assisted/
 *.txt
 !llms.txt
-.clio/*.json
-.clio/sessions/
-.clio/memory/
-.clio/snapshots/
-.clio/logs/
-
 # Project-specific: never commit config with real tokens
 github-backup.json
 !config.example.json
@@ -60,3 +54,7 @@ metadata/
 archives/
 logs/
 .run-state.json
+
+# CLIO (managed automatically)
+.clio/*
+!.clio/instructions.md
